@@ -15,32 +15,50 @@ class MidtermDao extends BaseDao
     public function input_data($data)
     {
 
-        try {
+        // Initial approach where we only used a for loop and addslashes function
+
+        // try {
+
+        //     for($i=0; $i<count($data); $i++) {
+        //         $sql = "INSERT INTO locations (from_value, to_value, code, Country, Region, City)
+        //         VALUES ( '" 
+        //         .addslashes($data[$i]['from_value']). "', '"
+        //         .addslashes($data[$i]['to_value'])."', '" 
+        //         .addslashes($data[$i]['code']). "', '"
+        //         .addslashes($data[$i]['Country']). "', '"
+        //         .addslashes($data[$i]['Region']). "', '"
+        //         .addslashes($data[$i]['City'])."');";
+
+
+        //         $this->conn->exec($sql);
+        //         echo "New record created successfully";
+        //     }
+        // } catch (PDOException $e) {
+        //     echo "There was an error";
+        //     echo $sql . "<br>" . $e->getMessage();
+        // }
 
 
 
-            for($i=0; $i<count($data); $i++) {
-                $sql = "INSERT INTO locations (from_value, to_value, code, Country, Region, City)
-                VALUES ( '" 
-                .addslashes($data[$i]['from']). "', '"
-                .addslashes($data[$i]['to'])."', '" 
-                .addslashes($data[$i]['code']). "', '"
-                .addslashes($data[$i]['Country']). "', '"
-                .addslashes($data[$i]['Region']). "', '"
-                .addslashes($data[$i]['City'])."');";
+        
+        // Better version of the code using parameterized query
 
+        $sql = "INSERT INTO locations (from_value, to_value, code, Country, Region, City)
+        VALUES (:from_value, :to_value, :code, :Country, :Region, :City)";
 
-                $this->conn->exec($sql);
-                echo "New record created successfully";
+        $statement = $this->conn->prepare($sql);
+
+        foreach ($data as $dataRow) {
+
+            foreach ($dataRow as $key => $value) {
+                    $statement->bindValue(":$key", $value);
             }
-
             
+            // Execute the prepared statement (we preped this statement in the foreach above) 
+            $statement->execute();
 
-
-
-        } catch (PDOException $e) {
-            echo "There was an error";
-            echo $sql . "<br>" . $e->getMessage();
+            // Reset the bindings for the next iteration
+            $statement->closeCursor();
         }
 
     }
